@@ -1,0 +1,22 @@
+{
+  "mcp": {
+    "lambda": {
+      "lambdaArn": "arn:aws:lambda:ap-southeast-2:097935663941:function:cedarshield-stack-ToolDeleteResourceFunction-7qQcbrb2jXrQ",
+      "toolSchema": {
+        "inlinePayload": [
+          {
+            "name": "delete_resource",
+            "description": "Deletes cloud resource",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "resource_id": { "type": "string", "description": "Resource identifier to delete" }
+              },
+              "required": ["resource_id"]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

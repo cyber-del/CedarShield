@@ -1,0 +1,1 @@
+{"cedar": {"statement": "permit (\n    principal is AgentCore::IamEntity,\n    action == AgentCore::Action::\"process-refund\",\n    resource == AgentCore::Gateway::\"arn:aws:bedrock-agentcore:ap-southeast-2:097935663941:gateway/cedarshieldgateway-pgs4beuirv\"\n)\nwhen {\n    principal.id like \"*finance*\" &&\n    context has amount && context.amount <= 500\n};"}}

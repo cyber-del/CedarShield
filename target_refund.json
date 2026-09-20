@@ -1,0 +1,23 @@
+{
+  "mcp": {
+    "lambda": {
+      "lambdaArn": "arn:aws:lambda:ap-southeast-2:097935663941:function:cedarshield-stack-ToolProcessRefundFunction-NyiA3nZx6eG4",
+      "toolSchema": {
+        "inlinePayload": [
+          {
+            "name": "process_refund",
+            "description": "Processes customer refund request",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "amount": { "type": "number", "description": "Refund amount in USD" },
+                "reason": { "type": "string", "description": "Reason for refund" }
+              },
+              "required": ["amount"]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

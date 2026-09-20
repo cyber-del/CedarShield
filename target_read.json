@@ -1,0 +1,22 @@
+{
+  "mcp": {
+    "lambda": {
+      "lambdaArn": "arn:aws:lambda:ap-southeast-2:097935663941:function:cedarshield-stack-ToolReadRecordFunction-hMF00GHwtd3N",
+      "toolSchema": {
+        "inlinePayload": [
+          {
+            "name": "read_record",
+            "description": "Reads customer and system database records",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "record_id": { "type": "string", "description": "Identifier of the record" }
+              },
+              "required": ["record_id"]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

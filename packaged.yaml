@@ -1,0 +1,362 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: "CedarShield Infrastructure Stack (AWS SAM) Self-healing policy remediation\
+  \ platform for AI agents secured by AWS Cedar and Bedrock AgentCore.\n"
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 256
+    Runtime: python3.12
+    Tracing: Active
+    Environment:
+      Variables:
+        AUDIT_TABLE_NAME:
+          Ref: AuditLogTable
+        AWS_REGION_NAME:
+          Ref: AWS::Region
+Resources:
+  AuditLogTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: cedarshield-audit-log
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+      - AttributeName: run_id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: run_id
+        KeyType: HASH
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+      - Key: Project
+        Value: CedarShield
+      - Key: Environment
+        Value: Dev
+  CedarShieldApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: prod
+      CorsConfiguration:
+        AllowOrigins:
+        - '*'
+        AllowMethods:
+        - GET
+        - POST
+        - OPTIONS
+        AllowHeaders:
+        - Content-Type
+        - Authorization
+        MaxAge: 300
+  DiagnoseDenialRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CedarShield-DiagnoseDenial-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  GeneratePatchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CedarShield-GeneratePatch-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  GenerateAdversarialTestsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CedarShield-GenerateAdversarialTests-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  VerifyPatchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CedarShield-VerifyPatch-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  ApiTriggerDenialRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CedarShield-ApiTriggerDenial-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+      - PolicyName: BedrockAgentCoreInvokePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - bedrock-agentcore:InvokeAgentRuntime
+            - bedrock-agentcore:Evaluate
+            - bedrock-agentcore-control:GetGateway
+            - bedrock-agentcore-control:GetPolicyEngine
+            - bedrock-agentcore-control:GetPolicy
+            - bedrock-agentcore-control:ListPolicies
+            Resource: '*'
+  ApiAuditLogRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CedarShield-ApiAuditLog-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  ApiApproveRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CedarShield-ApiApprove-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  ApiRejectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CedarShield-ApiReject-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  ToolsExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CedarShield-ToolsExecution-Role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+            - bedrock.amazonaws.com
+            - bedrock-agentcore.amazonaws.com
+          Action: sts:AssumeRole
+      ManagedPolicyArns:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  DiagnoseDenialFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: 
+        s3://cedarshield-artifacts-097935663941-ap-southeast-2/d003102b8a422b99c7f3e814933e9c01
+      Handler: app.lambda_handler
+      Role:
+        Fn::GetAtt:
+        - DiagnoseDenialRole
+        - Arn
+      Description: Explains Cedar denial root cause using Amazon Bedrock
+  GeneratePatchFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: 
+        s3://cedarshield-artifacts-097935663941-ap-southeast-2/e2efa2a8b7428227a68d17e6fa82baae
+      Handler: app.lambda_handler
+      Role:
+        Fn::GetAtt:
+        - GeneratePatchRole
+        - Arn
+      Description: Generates minimal .cedar patch diff using Amazon Bedrock
+  GenerateAdversarialTestsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: 
+        s3://cedarshield-artifacts-097935663941-ap-southeast-2/c0f64815fd4bba6a10fcd6f94adf4860
+      Handler: app.lambda_handler
+      Role:
+        Fn::GetAtt:
+        - GenerateAdversarialTestsRole
+        - Arn
+      Description: Generates adversarial edge-case test battery using Amazon 
+        Bedrock
+  VerifyPatchFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: 
+        s3://cedarshield-artifacts-097935663941-ap-southeast-2/340b19bc430e4a24820df0ce09c35efa
+      Handler: app.lambda_handler
+      Role:
+        Fn::GetAtt:
+        - VerifyPatchRole
+        - Arn
+      Description: Executes in-process Cedar verification matrix
+  ToolProcessRefundFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: 
+        s3://cedarshield-artifacts-097935663941-ap-southeast-2/a6a5ffc7381806bd184004cd360a1538
+      Handler: app.lambda_handler
+      Role:
+        Fn::GetAtt:
+        - ToolsExecutionRole
+        - Arn
+      Description: Tool for processing customer refunds
+  ToolReadRecordFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: 
+        s3://cedarshield-artifacts-097935663941-ap-southeast-2/18865a3468dfb357c996d349aa05872a
+      Handler: app.lambda_handler
+      Role:
+        Fn::GetAtt:
+        - ToolsExecutionRole
+        - Arn
+      Description: Tool for reading database records
+  ToolDeleteResourceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: 
+        s3://cedarshield-artifacts-097935663941-ap-southeast-2/04480c04df7a71c14a45b6ea159cf247
+      Handler: app.lambda_handler
+      Role:
+        Fn::GetAtt:
+        - ToolsExecutionRole
+        - Arn
+      Description: Tool for deleting system resources
+  TriggerDenialFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: 
+        s3://cedarshield-artifacts-097935663941-ap-southeast-2/fd6bc9b9f3084f48d63586b08f3efa3d
+      Handler: app.lambda_handler
+      Role:
+        Fn::GetAtt:
+        - ApiTriggerDenialRole
+        - Arn
+      Events:
+        TriggerDenialRoute:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: CedarShieldApi
+            Path: /trigger-denial
+            Method: POST
+  AuditLogFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: 
+        s3://cedarshield-artifacts-097935663941-ap-southeast-2/2f3890366f7fe51f4fcca901ad2a80ca
+      Handler: app.lambda_handler
+      Role:
+        Fn::GetAtt:
+        - ApiAuditLogRole
+        - Arn
+      Events:
+        AuditLogRoute:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: CedarShieldApi
+            Path: /audit-log
+            Method: GET
+  ApproveFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: 
+        s3://cedarshield-artifacts-097935663941-ap-southeast-2/72f015073525c05259121f388b1c9fd7
+      Handler: app.lambda_handler
+      Role:
+        Fn::GetAtt:
+        - ApiApproveRole
+        - Arn
+      Events:
+        ApproveRoute:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: CedarShieldApi
+            Path: /approve
+            Method: POST
+  RejectFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: 
+        s3://cedarshield-artifacts-097935663941-ap-southeast-2/2340884b854c3774ef5ed1286b90298a
+      Handler: app.lambda_handler
+      Role:
+        Fn::GetAtt:
+        - ApiRejectRole
+        - Arn
+      Events:
+        RejectRoute:
+          Type: HttpApi
+          Properties:
+            ApiId:
+              Ref: CedarShieldApi
+            Path: /reject
+            Method: POST
+Outputs:
+  CedarShieldApiUrl:
+    Description: Base URL for CedarShield HTTP API
+    Value:
+      Fn::Sub: 
+        https://${CedarShieldApi}.execute-api.${AWS::Region}.amazonaws.com/prod
+  AuditLogTableName:
+    Description: DynamoDB Audit Log Table Name
+    Value:
+      Ref: AuditLogTable
+  ToolProcessRefundFunctionArn:
+    Description: Tool Process Refund Function ARN
+    Value:
+      Fn::GetAtt:
+      - ToolProcessRefundFunction
+      - Arn
+  ToolReadRecordFunctionArn:
+    Description: Tool Read Record Function ARN
+    Value:
+      Fn::GetAtt:
+      - ToolReadRecordFunction
+      - Arn
+  ToolDeleteResourceFunctionArn:
+    Description: Tool Delete Resource Function ARN
+    Value:
+      Fn::GetAtt:
+      - ToolDeleteResourceFunction
+      - Arn
