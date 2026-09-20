@@ -1,5 +1,15 @@
 // CedarShield API & Cognito Integration Service
-export const API_BASE_URL = "/api";
+export const getApiBaseUrl = () => {
+  if (typeof window !== "undefined") {
+    const pathname = window.location.pathname;
+    if (pathname.startsWith("/prod")) {
+      return "/prod/api";
+    }
+  }
+  return "/api";
+};
+
+export const API_BASE_URL = getApiBaseUrl();
 
 export const COGNITO_CONFIG = {
   region: "ap-southeast-2",

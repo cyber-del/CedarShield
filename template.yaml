@@ -9,7 +9,6 @@ Globals:
     Timeout: 30
     MemorySize: 256
     Runtime: python3.12
-    Tracing: Active
     Environment:
       Variables:
         AUDIT_TABLE_NAME: !Ref AuditLogTable
@@ -756,6 +755,66 @@ Resources:
             Method: POST
             Auth:
               Authorizer: CognitoAuthorizer
+
+  FrontendServerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/frontend-server/
+      Handler: app.lambda_handler
+      Role: !GetAtt ApiAuditLogRole.Arn
+      Description: Serves the CedarShield Single Page Application
+      Events:
+        RootRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref CedarShieldApi
+            Path: /
+            Method: GET
+        ProxyRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref CedarShieldApi
+            Path: /{proxy+}
+            Method: GET
+
+  ApiRouterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/api-router/
+      Handler: app.lambda_handler
+      Role: !GetAtt ApiApproveRole.Arn
+      Description: Unified backend API router for CedarShield
+      Events:
+        ApiProxyRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref CedarShieldApi
+            Path: /api/{proxy+}
+            Method: ANY
+        VerifyAuditChainRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref CedarShieldApi
+            Path: /verify-audit-chain
+            Method: POST
+        SimulateAbuseRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref CedarShieldApi
+            Path: /simulate-abuse
+            Method: POST
+        KpisRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref CedarShieldApi
+            Path: /kpis
+            Method: GET
+        HealthRoute:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref CedarShieldApi
+            Path: /health
+            Method: GET
 
 Outputs:
   CedarShieldApiUrl:
