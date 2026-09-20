@@ -311,8 +311,31 @@ class CedarShieldApiHandler(http.server.BaseHTTPRequestHandler):
                 self.send_json({"status": "SUCCESS", "runs": clean_items, "kpis": kpis}, 200)
             except Exception as e:
                 self.send_json({"status": "ERROR", "error": f"DynamoDB scan failed: {str(e)}"}, 500)
+        elif parsed.path in ("/api/health", "/health"):
+            self.send_json({"status": "HEALTHY", "region": REGION, "timestamp": datetime.now(timezone.utc).isoformat()}, 200)
         else:
-            self.send_json({"error": "Not found"}, 404)
+            # Serve Static SPA files from frontend/dist
+            dist_dir = os.path.join(os.path.dirname(__file__), "frontend", "dist")
+            rel_path = parsed.path.lstrip("/")
+            if not rel_path:
+                rel_path = "index.html"
+            target = os.path.join(dist_dir, rel_path)
+            if not os.path.isfile(target):
+                target = os.path.join(dist_dir, "index.html")
+            if os.path.isfile(target):
+                import mimetypes
+                ct, _ = mimetypes.guess_type(target)
+                ct = ct or "application/octet-stream"
+                with open(target, "rb") as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", ct)
+                self.send_header("Content-Length", str(len(content)))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(content)
+            else:
+                self.send_json({"error": "Not found"}, 404)
 
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
