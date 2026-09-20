@@ -1,0 +1,202 @@
+{
+  "session_summary": "CedarShield Interactive Profiling Run",
+  "interaction_profiling_results": [
+    {
+      "action": "click_scenario_enterprise",
+      "total_wall_clock_ms": 112.26,
+      "react_components_rendered": [
+        {
+          "id": "TriggerDenialPanel",
+          "phase": "update",
+          "actualDuration": 2.6,
+          "baseDuration": 1.9,
+          "startTime": 9900.7,
+          "commitTime": 9903.5,
+          "timestamp": 9904.79999999993
+        }
+      ]
+    },
+    {
+      "action": "click_scenario_role_mismatch",
+      "total_wall_clock_ms": 52.13,
+      "react_components_rendered": [
+        {
+          "id": "TriggerDenialPanel",
+          "phase": "update",
+          "actualDuration": 1.6,
+          "baseDuration": 1,
+          "startTime": 10070.1,
+          "commitTime": 10071.9,
+          "timestamp": 10072
+        }
+      ]
+    },
+    {
+      "action": "click_scenario_vip_refund",
+      "total_wall_clock_ms": 43.16,
+      "react_components_rendered": [
+        {
+          "id": "TriggerDenialPanel",
+          "phase": "update",
+          "actualDuration": 1.4,
+          "baseDuration": 1.2,
+          "startTime": 10219.3,
+          "commitTime": 10220.8,
+          "timestamp": 10220.79999999993
+        }
+      ]
+    },
+    {
+      "action": "drag_slider_range",
+      "total_wall_clock_ms": 186.55,
+      "react_components_rendered": [
+        {
+          "id": "TriggerDenialPanel",
+          "phase": "update",
+          "actualDuration": 1.5,
+          "baseDuration": 1.1,
+          "startTime": 10377.2,
+          "commitTime": 10378.8,
+          "timestamp": 10381.400000000023
+        },
+        {
+          "id": "TriggerDenialPanel",
+          "phase": "update",
+          "actualDuration": 1.4,
+          "baseDuration": 1.1,
+          "startTime": 10422.2,
+          "commitTime": 10423.7,
+          "timestamp": 10423.699999999953
+        },
+        {
+          "id": "TriggerDenialPanel",
+          "phase": "update",
+          "actualDuration": 1.2,
+          "baseDuration": 1,
+          "startTime": 10468.1,
+          "commitTime": 10469.4,
+          "timestamp": 10469.5
+        },
+        {
+          "id": "TriggerDenialPanel",
+          "phase": "update",
+          "actualDuration": 1.4,
+          "baseDuration": 1.2,
+          "startTime": 10500.1,
+          "commitTime": 10501.8,
+          "timestamp": 10501.900000000023
+        }
+      ]
+    },
+    {
+      "action": "switch_tab_architecture",
+      "total_wall_clock_ms": 55.33,
+      "react_components_rendered": [
+        {
+          "id": "ArchitectureView",
+          "phase": "update",
+          "actualDuration": 2.9,
+          "baseDuration": 1.2,
+          "startTime": 10686,
+          "commitTime": 10689.3,
+          "timestamp": 10690
+        }
+      ]
+    },
+    {
+      "action": "click_arch_node_gateway",
+      "total_wall_clock_ms": 43.46,
+      "react_components_rendered": [
+        {
+          "id": "ArchitectureView",
+          "phase": "update",
+          "actualDuration": 1.4,
+          "baseDuration": 1,
+          "startTime": 10853.6,
+          "commitTime": 10855.1,
+          "timestamp": 10855.400000000023
+        }
+      ]
+    },
+    {
+      "action": "click_arch_node_bedrock",
+      "total_wall_clock_ms": 49.15,
+      "react_components_rendered": [
+        {
+          "id": "ArchitectureView",
+          "phase": "update",
+          "actualDuration": 1.4,
+          "baseDuration": 0.9,
+          "startTime": 11020.3,
+          "commitTime": 11021.8,
+          "timestamp": 11022
+        }
+      ]
+    },
+    {
+      "action": "click_arch_node_dynamodb",
+      "total_wall_clock_ms": 45.25,
+      "react_components_rendered": [
+        {
+          "id": "ArchitectureView",
+          "phase": "update",
+          "actualDuration": 1.4,
+          "baseDuration": 0.6,
+          "startTime": 11172.7,
+          "commitTime": 11174.2,
+          "timestamp": 11174.400000000023
+        }
+      ]
+    }
+  ],
+  "browser_user_timing_measures": [
+    {
+      "name": "click_scenario_enterprise",
+      "duration_ms": 107.1,
+      "startTime_ms": 9807.9
+    },
+    {
+      "name": "click_scenario_role_mismatch",
+      "duration_ms": 48.9,
+      "startTime_ms": 10027
+    },
+    {
+      "name": "click_scenario_vip_refund",
+      "duration_ms": 40,
+      "startTime_ms": 10184.7
+    },
+    {
+      "name": "drag_slider_range",
+      "duration_ms": 183.7,
+      "startTime_ms": 10361.6
+    },
+    {
+      "name": "switch_tab_architecture",
+      "duration_ms": 52.1,
+      "startTime_ms": 10655
+    },
+    {
+      "name": "click_arch_node_gateway",
+      "duration_ms": 37.1,
+      "startTime_ms": 10825.5
+    },
+    {
+      "name": "click_arch_node_bedrock",
+      "duration_ms": 45.2,
+      "startTime_ms": 10984
+    },
+    {
+      "name": "click_arch_node_dynamodb",
+      "duration_ms": 38.8,
+      "startTime_ms": 11142.3
+    }
+  ],
+  "cdp_trace_timeline_breakdown_ms": {
+    "JavaScript Execution (Script/V8/Callbacks)": 136.42,
+    "Recalculate Styles (CSS Rule Matching)": 72.17,
+    "Layout / Reflow (DOM Geometry)": 16.29,
+    "PrePaint & Paint (Rasterization)": 179.53,
+    "Composite Layers (GPU Compositor)": 0.0
+  },
+  "network_requests_during_interactions": []
+}

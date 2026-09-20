@@ -1,0 +1,2 @@
+# Lambda requirements placeholder
+# boto3 is provided natively by AWS Lambda Python runtime
