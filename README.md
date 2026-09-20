@@ -10,6 +10,19 @@
 
 ---
 
+## 🌐 Live Deployment & Judge Access
+
+| Resource | URL / Credentials |
+| :--- | :--- |
+| **Live Dashboard** | **[http://cedarshield-web-123456789012-ap-southeast-2.s3-website-ap-southeast-2.amazonaws.com](http://cedarshield-web-123456789012-ap-southeast-2.s3-website-ap-southeast-2.amazonaws.com)** |
+| **Judge Sign-In Email** | `security-reviewer@example.com` |
+| **Judge Password** | `[REDACTED_PASSWORD]` |
+| **AWS Region** | `ap-southeast-2` (Amazon Cognito User Pool `us-east-1_sample_pool`) |
+
+> 💡 *Note for Judges*: When testing the **Cognito Reviewer Sign-In**, demo credentials are also automatically pre-filled with an **Auto-Fill** button directly inside the login modal for 1-click authentication.
+
+---
+
 ## 📌 Executive Summary
 
 When enterprise AI agents invoke critical tools (financial refunds, database provisioning, cloud configuration) and encounter authorization failures, traditional architectures fail silently with opaque `-32002 DENY` errors. Operations grind to a halt while security teams manually decipher Cedar policies, write patches, and deploy hotfixes.

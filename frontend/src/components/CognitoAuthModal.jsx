@@ -11,6 +11,12 @@ export default function CognitoAuthModal({ isOpen, onClose, onAuthSuccess }) {
 
   if (!isOpen) return null;
 
+  const handleQuickFill = () => {
+    setUsername("security-reviewer@example.com");
+    setPassword("[REDACTED_PASSWORD]");
+    setError(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -58,14 +64,25 @@ export default function CognitoAuthModal({ isOpen, onClose, onAuthSuccess }) {
 
         {/* Modal Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="bg-surface-subtle p-3 rounded-md border border-ink-200 text-xs text-ink-600 space-y-1">
-            <div className="flex items-center gap-1.5 font-medium text-ink-800">
-              <ShieldCheck className="w-3.5 h-3.5 text-muted-green" />
-              <span>Cognito JWT Protected Governance</span>
+          {/* Judge Demo Helper Banner */}
+          <div className="bg-muted-green-light/60 p-3 rounded-md border border-muted-green-border text-xs text-ink-700 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 font-semibold text-ink-900">
+                <ShieldCheck className="w-4 h-4 text-muted-green" />
+                <span>Hackathon Judge Demo Credentials</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleQuickFill}
+                className="text-[10px] font-mono text-muted-green hover:underline font-semibold"
+              >
+                Auto-Fill
+              </button>
             </div>
-            <p className="text-[11px] text-ink-500">
-              Policy approval and rejection routes require a verified Cognito identity token to guarantee non-repudiation in the audit log.
-            </p>
+            <div className="font-mono text-[11px] bg-surface/80 p-2 rounded border border-ink-200/60 space-y-0.5">
+              <div><span className="text-ink-500">User:</span> <span className="text-ink-900 font-semibold select-all">security-reviewer@example.com</span></div>
+              <div><span className="text-ink-500">Pass:</span> <span className="text-ink-900 font-semibold select-all">[REDACTED_PASSWORD]</span></div>
+            </div>
           </div>
 
           {error && (
