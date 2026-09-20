@@ -406,9 +406,11 @@ export default function App() {
                 runId={currentRun.runId}
                 session={session}
                 isProcessing={isActionProcessing}
+                pipelineStatus={pipelineState.status}
                 onApprove={handleApprove}
                 onReject={handleReject}
                 onOpenAuthModal={() => setIsAuthModalOpen(true)}
+                onViewAuditHistory={() => setActiveTab("history")}
                 isCeilingBlocked={currentRun.isCeilingTriggered}
               />
             </Profiler>
