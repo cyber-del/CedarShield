@@ -14,12 +14,13 @@
 
 | Resource | URL / Credentials |
 | :--- | :--- |
-| **Live Dashboard** | **[http://cedarshield-web-097935663941-ap-southeast-2.s3-website-ap-southeast-2.amazonaws.com](http://cedarshield-web-097935663941-ap-southeast-2.s3-website-ap-southeast-2.amazonaws.com)** |
+| **Permanent Live Dashboard** | **[https://cyber-del.github.io/CedarShield/](https://cyber-del.github.io/CedarShield/)** |
+| **AWS S3 Archive** | `http://cedarshield-web-097935663941-ap-southeast-2.s3-website-ap-southeast-2.amazonaws.com` |
 | **Judge Sign-In Email** | `security-reviewer@example.com` |
 | **Judge Password** | `CedarPassword123!` |
 | **AWS Region** | `ap-southeast-2` (Amazon Cognito User Pool `ap-southeast-2_QGbPPwecZ`) |
 
-> 💡 *Note for Judges*: When testing the **Cognito Reviewer Sign-In**, demo credentials are also automatically pre-filled with an **Auto-Fill** button directly inside the login modal for 1-click authentication.
+> 💡 *Note for Judges*: When testing the **Cognito Reviewer Sign-In**, demo reviewer access is pre-authenticated out of the box with an **Auto-Fill** button directly inside the login modal for 1-click evaluation.
 
 ---
 
