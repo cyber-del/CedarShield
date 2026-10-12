@@ -66,7 +66,7 @@ flowchart TD
 
     subgraph Governance["3. Cryptographic Audit & Human Sign-off"]
         IV --> COG["Amazon Cognito Reviewer Sign-off"]
-        COG --> DDB["DynamoDB SHA-256 Merkle Audit Ledger"]
+        COG --> DDB["DynamoDB SHA-256 Hash Chain Ledger"]
         DDB --> LIVE_UPDATE["Update Live AgentCore Policy Engine"]
     end
 
@@ -100,7 +100,7 @@ Interactive scenario evaluation, 7-stage Step Functions pipeline tracking, Cedar
 ---
 
 ### 2. Cryptographic Audit Ledger & Anomaly Rollback
-Tamper-evident SHA-256 Merkle chain verification and automated post-patch anomaly detection.
+Tamper-evident SHA-256 hash chain verification and automated post-patch anomaly detection.
 
 <p align="center">
   <img src="screenshots/tab2_audit_case_history.png" alt="CedarShield Audit Case History and Rollback Tab" width="950" />
@@ -111,12 +111,12 @@ Tamper-evident SHA-256 Merkle chain verification and automated post-patch anomal
 | **Cryptographic Status** | Verification banner confirming all SHA-256 hashes and prev-pointers are mathematically intact (`4 Blocks Validated Live`). |
 | **Block #1 (Genesis)** | Initial remediation execution (`run_01_happy_path_remediation` - `APPLIED`). |
 | **Block #2 (Ceiling Breach)** | $5,000 transaction exceeding ceiling safely routed to manual review (`MANUAL_REVIEW`). |
-| **Block #3 (Cognito Sign-Off)** | Production patch applied following authorized security reviewer verification (`APPLIED`). |
+| **Block #3 (Cognito Sign-Off)** | Verified hackathon patch applied following authorized security reviewer verification (`APPLIED`). |
 | **Block #4 (Anomaly Rollback)** | Anomaly watcher detected 3 near-ceiling invocations ($2,450, $2,480, $2,490) in 3 minutes ($\ge 90\%$ threshold). Dynamically pulled pre-patch policy from Block #3 and restored baseline state on the policy engine. |
 
 ---
 
-### 3. Architecture Topology & Cloud Resources
+### 3. Reference Architecture & Cloud Resources
 
 <p align="center">
   <img src="screenshots/tab3_architecture_view.png" alt="CedarShield Architecture Topology Tab" width="950" />
@@ -128,7 +128,7 @@ Tamper-evident SHA-256 Merkle chain verification and automated post-patch anomal
 | **EventBridge Bus** | `arn:aws:events:<REGION>:<ACCOUNT_ID>:event-bus/default` | Dispatches policy violation events and anomaly triggers. |
 | **Step Functions** | `arn:aws:states:<REGION>:<ACCOUNT_ID>:stateMachine:CedarShieldRemediationPipeline` | Orchestrates 7-stage serverless remediation lifecycle. |
 | **Bedrock & Policy Engine** | `CedarShieldPolicyEngine-Core` | Bedrock diagnosis and live Cedar policy evaluation. |
-| **DynamoDB Audit Ledger** | `cedarshield-audit-log` | Immutable SHA-256 Merkle hash chain storing all decisions. |
+| **DynamoDB Audit Ledger** | `cedarshield-audit-log` | Immutable SHA-256 hash chain storing all decisions. |
 | **Cognito Governance** | User Pool `<COGNITO_USER_POOL_ID>` | RBAC authentication for security reviewer sign-off. |
 
 ---
