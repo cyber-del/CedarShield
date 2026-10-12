@@ -76,7 +76,7 @@ export default function ReviewActionPanel({
           </div>
           <p className="text-xs text-ink-500">
             {isApproved
-              ? `Decision cryptographically signed by ${session?.email || "security-reviewer@example.com"} and anchored in DynamoDB SHA-256 Merkle chain.`
+              ? `Decision cryptographically signed by ${session?.email || "reviewer-sandbox@cedarshield.internal"} and anchored in DynamoDB SHA-256 Merkle chain.`
               : isRejected
               ? `Rejection recorded in audit history. No policy changes applied to AgentCore engine.`
               : session

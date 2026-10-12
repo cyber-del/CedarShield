@@ -4,6 +4,12 @@ Description: >
   CedarShield Infrastructure Stack (AWS SAM)
   Self-healing policy remediation platform for AI agents secured by AWS Cedar and Bedrock AgentCore.
 
+Parameters:
+  AdminAlertEmail:
+    Type: String
+    Default: "security-alerts@example.com"
+    Description: "Email address for AWS monthly budget and cost spike alerts"
+
 Globals:
   Function:
     Timeout: 30
@@ -77,6 +83,9 @@ Resources:
     Type: AWS::Serverless::HttpApi
     Properties:
       StageName: prod
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 10
+        ThrottlingRateLimit: 5
       Auth:
         Authorizers:
           CognitoAuthorizer:
@@ -657,7 +666,7 @@ Resources:
             },
             "AwaitApprovalState": {
               "Type": "Task",
-              "Resource": "arn:aws:states:ap-southeast-2:123456789012:activity:CedarShield-HumanApproval",
+              "Resource": "arn:aws:states:${AWS::Region}:${AWS::AccountId}:activity:CedarShield-HumanApproval",
               "Next": "ApplyPatchState"
             },
             "ApplyPatchState": {
@@ -814,7 +823,36 @@ Resources:
           Properties:
             ApiId: !Ref CedarShieldApi
             Path: /health
-            Method: GET
+  # =========================================================================
+  # 9. Cost Safeguards: AWS Monthly Spending Cap & Alarm
+  # =========================================================================
+  CedarShieldMonthlyBudget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetName: CedarShield-Monthly-Cost-Cap
+        BudgetLimit:
+          Amount: 20
+          Unit: USD
+        TimeUnit: MONTHLY
+        BudgetType: COST
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AdminAlertEmail
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 100
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AdminAlertEmail
 
 Outputs:
   CedarShieldApiUrl:

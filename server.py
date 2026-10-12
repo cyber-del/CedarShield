@@ -19,7 +19,7 @@ DYNAMODB_TABLE = "cedarshield-audit-log"
 ENGINE_ID = "CedarShieldPolicyEngine-2ivsrp1osh"
 GATEWAY_MCP_URL = "https://cedarshieldgateway-pgs4beuirv.gateway.bedrock-agentcore.ap-southeast-2.amazonaws.com/mcp"
 GATEWAY_ARN = "arn:aws:bedrock-agentcore:ap-southeast-2:123456789012:gateway/cedarshieldgateway-pgs4beuirv"
-USER_POOL_ID = "us-east-1_sample_pool"
+USER_POOL_ID = "sample_user_pool"
 APP_CLIENT_ID = "sample_app_client"
 
 dynamodb = boto3.resource("dynamodb", region_name=REGION)

@@ -364,7 +364,7 @@ export default function AuditLogView() {
                       <div>
                         <span className="text-ink-400 font-sans block text-[10px]">Approver Identity</span>
                         <span className={`font-medium truncate block ${isRollback ? "text-muted-red font-bold" : "text-muted-green"}`} title={item.approver_identity}>
-                          {item.approver_identity || "security-reviewer@example.com"}
+                          {item.approver_identity || "reviewer-sandbox@cedarshield.internal"}
                         </span>
                       </div>
                     </div>

@@ -98,7 +98,7 @@ const NODES = [
     subtitle: "Human Signoff",
     icon: Users,
     service: "Amazon Cognito",
-    arn: "arn:aws:cognito-idp:ap-southeast-2:123456789012:userpool/us-east-1_sample_pool",
+    arn: "arn:aws:cognito-idp:ap-southeast-2:123456789012:userpool/sample_user_pool",
     status: "ACTIVE (App Client: sample_app_client)",
     connectedTo: ["dynamodb", "gateway"],
     flowDescription: "Validates security admin JWT token signatures before authorized Cedar policy mutations are committed to the live Gateway.",

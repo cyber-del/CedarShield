@@ -1,19 +1,25 @@
-﻿import json
+import json
 import boto3
 import urllib.request
 import urllib.error
 import time
 
-REGION = "ap-southeast-2"
-USER_POOL_ID = "us-east-1_sample_pool"
-CLIENT_ID = "sample_app_client"
-API_URL = "https://mwrzzbhzu8.execute-api.ap-southeast-2.amazonaws.com/prod"
-USERNAME = "security-reviewer@example.com"
-PASSWORD = "[REDACTED_PASSWORD]"
+import os
+
+REGION = os.environ.get("AWS_REGION_NAME", "us-east-1")
+USER_POOL_ID = os.environ.get("COGNITO_USER_POOL_ID", "")
+CLIENT_ID = os.environ.get("COGNITO_CLIENT_ID", "")
+API_URL = os.environ.get("API_GATEWAY_URL", "http://localhost:3001/api")
+USERNAME = os.environ.get("COGNITO_USERNAME", "security-reviewer@example.com")
+PASSWORD = os.environ.get("COGNITO_PASSWORD", "")
+
+if not USER_POOL_ID or not PASSWORD:
+    print("COGNITO_USER_POOL_ID or COGNITO_PASSWORD not set. Please provide via environment variables.")
+    exit(0)
 
 cognito = boto3.client("cognito-idp", region_name=REGION)
 dynamodb = boto3.resource("dynamodb", region_name=REGION)
-table = dynamodb.Table("cedarshield-audit-log")
+table = dynamodb.Table(os.environ.get("AUDIT_TABLE_NAME", "cedarshield-audit-log"))
 
 print("=" * 70)
 print("1. PROVISIONING COGNITO USER")

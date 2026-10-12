@@ -1,15 +1,23 @@
+import os
 import requests
 import json
 
-COGNITO_ENDPOINT = "https://cognito-idp.ap-southeast-2.amazonaws.com/"
-CLIENT_ID = "sample_app_client"
+REGION = os.environ.get("AWS_REGION_NAME", "us-east-1")
+COGNITO_ENDPOINT = os.environ.get("COGNITO_ENDPOINT", f"https://cognito-idp.{REGION}.amazonaws.com/")
+CLIENT_ID = os.environ.get("COGNITO_CLIENT_ID", "sample_client_id")
+USERNAME = os.environ.get("COGNITO_USERNAME", "security-reviewer@example.com")
+PASSWORD = os.environ.get("COGNITO_PASSWORD", "")
+
+if not PASSWORD:
+    print("COGNITO_PASSWORD not set in environment. Skipping live authentication.")
+    exit(0)
 
 payload = {
     "AuthFlow": "USER_PASSWORD_AUTH",
     "ClientId": CLIENT_ID,
     "AuthParameters": {
-        "USERNAME": "security-reviewer@example.com",
-        "PASSWORD": "[REDACTED_PASSWORD]"
+        "USERNAME": USERNAME,
+        "PASSWORD": PASSWORD
     }
 }
 

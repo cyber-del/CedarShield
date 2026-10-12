@@ -159,7 +159,7 @@ block_3 = {
     "policy_applied": True,
     "status": "APPROVED",
     "approver_identity": "security-reviewer@example.com (sub: 592e8478-5071-704b-ac47-d8249f35872c)",
-    "cognito_user_pool_id": "us-east-1_sample_pool",
+    "cognito_user_pool_id": "sample_user_pool_id",
     "cognito_app_client_id": "sample_app_client",
     "auth_type": "Cognito_JWT_Authorizer",
     "verification_matrix": [

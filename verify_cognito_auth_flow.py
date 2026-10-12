@@ -1,20 +1,27 @@
-﻿import json
+import json
 import boto3
 import urllib.request
 import urllib.error
 import time
 import base64
 
-REGION = "ap-southeast-2"
-USER_POOL_ID = "us-east-1_sample_pool"
-CLIENT_ID = "sample_app_client"
-API_URL = "https://mwrzzbhzu8.execute-api.ap-southeast-2.amazonaws.com/prod"
-USERNAME = "security-reviewer@example.com"
-PASSWORD = "[REDACTED_PASSWORD]"
+import os
+
+REGION = os.environ.get("AWS_REGION_NAME", "us-east-1")
+USER_POOL_ID = os.environ.get("COGNITO_USER_POOL_ID", "")
+CLIENT_ID = os.environ.get("COGNITO_CLIENT_ID", "")
+API_URL = os.environ.get("API_GATEWAY_URL", "http://localhost:3001/api")
+USERNAME = os.environ.get("COGNITO_USERNAME", "security-reviewer@example.com")
+PASSWORD = os.environ.get("COGNITO_PASSWORD", "")
+ACCOUNT_ID = os.environ.get("AWS_ACCOUNT_ID", "123456789012")
+
+if not USER_POOL_ID or not PASSWORD:
+    print("COGNITO_USER_POOL_ID or COGNITO_PASSWORD not set. Please provide via environment variables.")
+    exit(0)
 
 cognito = boto3.client("cognito-idp", region_name=REGION)
 dynamodb = boto3.resource("dynamodb", region_name=REGION)
-table = dynamodb.Table("cedarshield-audit-log")
+table = dynamodb.Table(os.environ.get("AUDIT_TABLE_NAME", "cedarshield-audit-log"))
 
 print("=" * 80)
 print("CEDARSHIELD STEP 4: COGNITO AUTHENTICATION & SECURE APPROVAL VERIFICATION")
@@ -111,7 +118,7 @@ print("\n[STEP 4] LIVE TEST 3: Authenticated Approval with Cognito Identity in A
 print("-" * 80)
 
 # Seed the pending run in DynamoDB
-gateway_arn = "arn:aws:bedrock-agentcore:ap-southeast-2:123456789012:gateway/cedarshieldgateway-pgs4beuirv"
+gateway_arn = f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT_ID}:gateway/cedarshieldgateway-sample"
 proposed_policy = f"""permit (
     principal is AgentCore::IamEntity,
     action == AgentCore::Action::"process-refund",
@@ -119,8 +126,8 @@ proposed_policy = f"""permit (
 )
 when {{
     (
-        principal.id like "arn:aws:iam::123456789012:role/*FinanceAgent*" ||
-        principal.id like "arn:aws:sts::123456789012:assumed-role/CedarShield-FinanceAgent-Role/*"
+        principal.id like "arn:aws:iam::{ACCOUNT_ID}:role/*FinanceAgent*" ||
+        principal.id like "arn:aws:sts::{ACCOUNT_ID}:assumed-role/CedarShield-FinanceAgent-Role/*"
     ) &&
     context has amount && context.amount <= 2500
 }};"""
@@ -130,7 +137,7 @@ table.put_item(
         "run_id": test_run_id,
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "status": "AWAITING_APPROVAL",
-        "principal": "arn:aws:iam::123456789012:role/CedarShield-FinanceAgent-Role",
+        "principal": f"arn:aws:iam::{ACCOUNT_ID}:role/CedarShield-FinanceAgent-Role",
         "action": "process-refund",
         "resource": gateway_arn,
         "arguments": {"amount": 2000, "refund_id": "ref-cognito-001"},
@@ -157,8 +164,8 @@ simulated_apigw_event = {
         "content-type": "application/json"
     },
     "requestContext": {
-        "accountId": "123456789012",
-        "apiId": "mwrzzbhzu8",
+        "accountId": ACCOUNT_ID,
+        "apiId": "sample_api",
         "authorizer": {
             "jwt": {
                 "claims": decoded_claims,

@@ -34,6 +34,13 @@ frontend/.env.local
 # AWS SAM / Deployment artifacts
 .aws-sam/
 samconfig.toml.bak
+packaged.yaml
+test_results.json
+temp_pol.json
+temp_*.json
+*.env
+*.env.*
+*.bak
 
 # IDE & OS
 .vscode/

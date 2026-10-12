@@ -10,17 +10,16 @@
 
 ---
 
-## 🌐 Live Deployment & Judge Access
+## 🌐 Live Interactive Demo & Security Isolation
 
-| Resource | URL / Credentials |
+| Resource | Access Method / Environment |
 | :--- | :--- |
-| **Permanent Live Dashboard** | **[https://cyber-del.github.io/CedarShield/](https://cyber-del.github.io/CedarShield/)** |
-| **AWS S3 Archive** | `http://cedarshield-web-123456789012-ap-southeast-2.s3-website-ap-southeast-2.amazonaws.com` |
-| **Judge Sign-In Email** | `security-reviewer@example.com` |
-| **Judge Password** | `[REDACTED_PASSWORD]` |
-| **AWS Region** | `ap-southeast-2` (Amazon Cognito User Pool `us-east-1_sample_pool`) |
+| **Public Interactive Dashboard** | **[https://cyber-del.github.io/CedarShield/](https://cyber-del.github.io/CedarShield/)** |
+| **Execution Mode** | **Safe Sandbox Mode** (Deterministic synthetic telemetry; zero live credential exposure or billing risk) |
+| **Enterprise Sandbox Access** | Dedicated live Amazon Bedrock & Cognito reviewer credentials available upon request |
+| **Cost & Abuse Protection** | Hard spending cap ($20/mo AWS Budget alarm) & API Gateway route throttling (5 req/sec rate limit) |
 
-> 💡 *Note for Judges*: When testing the **Cognito Reviewer Sign-In**, demo reviewer access is pre-authenticated out of the box with an **Auto-Fill** button directly inside the login modal for 1-click evaluation.
+> 🛡️ **Zero Shared Secrets**: In accordance with AWS Well-Architected Security Pillar best practices, the public web dashboard operates in an isolated synthetic evaluation mode. Visitors can simulate live denials, inspect Cedar AST diffs, evaluate the 5-test adversarial boundary battery, and verify SHA-256 Merkle chain integrity without requiring shared credentials or triggering billable cloud model invocations.
 
 ---
 
@@ -226,7 +225,7 @@ python simulate_anomaly_and_rollback.py
 ## 🔒 Security & Safety Guarantees
 
 1. **Non-Negotiable Autonomous Ceiling**: Requests with `amount > $2,500` are blocked at the Step Functions state machine level and cannot be bypassed by automated retry loops.
-2. **Strict Identity Isolation**: Cedar policies bind principals explicitly using canonical IAM role ARNs (`principal.id like "arn:aws:iam::123456789012:role/*FinanceAgent*"`). Role-spoofing is rejected unconditionally.
+2. **Strict Identity Isolation**: Cedar policies bind principals explicitly using canonical IAM role ARNs (`principal.id like "arn:aws:iam::<AWS_ACCOUNT_ID>:role/*FinanceAgent*"`). Role-spoofing is rejected unconditionally.
 3. **Bedrock PatchGuardrails**: Active filters prevent condition stripping (`when { true }`) and wildcard permissions before policy drafts reach reviewers.
 4. **Tamper-Evident Ledger**: DynamoDB ledger entries compute SHA-256 hashes linking back to genesis block (`0x00...00`). Any out-of-band record tampering breaks chain validation immediately.
 5. **Zero-Assumption Dynamic Rollbacks**: The anomaly rollback engine never hardcodes default values; it dynamically reads the `current_policy` pre-patch string from the original audit block in DynamoDB and restores it directly on the policy engine.

@@ -1,20 +1,27 @@
-﻿import json
+import json
 import time
 import urllib.request
 import urllib.error
 import boto3
 
-REGION = "ap-southeast-2"
-API_BASE_URL = "https://mwrzzbhzu8.execute-api.ap-southeast-2.amazonaws.com/prod"
-COGNITO_USER_POOL = "us-east-1_sample_pool"
-COGNITO_APP_CLIENT = "sample_app_client"
-FRONTEND_URL = "http://cedarshield-web-123456789012-ap-southeast-2.s3-website-ap-southeast-2.amazonaws.com"
-USERNAME = "security-reviewer@example.com"
-PASSWORD = "[REDACTED_PASSWORD]"
+import os
+
+REGION = os.environ.get("AWS_REGION_NAME", "us-east-1")
+API_BASE_URL = os.environ.get("API_GATEWAY_URL", "http://localhost:3001/api")
+COGNITO_USER_POOL = os.environ.get("COGNITO_USER_POOL_ID", "")
+COGNITO_APP_CLIENT = os.environ.get("COGNITO_CLIENT_ID", "")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://cyber-del.github.io/CedarShield/")
+USERNAME = os.environ.get("COGNITO_USERNAME", "security-reviewer@example.com")
+PASSWORD = os.environ.get("COGNITO_PASSWORD", "")
+ACCOUNT_ID = os.environ.get("AWS_ACCOUNT_ID", "123456789012")
+
+if not COGNITO_USER_POOL or not PASSWORD:
+    print("COGNITO_USER_POOL_ID or COGNITO_PASSWORD not set. Skipping live credentials test.")
+    exit(0)
 
 cognito = boto3.client("cognito-idp", region_name=REGION)
 dynamodb = boto3.resource("dynamodb", region_name=REGION)
-table = dynamodb.Table("cedarshield-audit-log")
+table = dynamodb.Table(os.environ.get("AUDIT_TABLE_NAME", "cedarshield-audit-log"))
 
 print("=" * 80)
 print("CEDARSHIELD FRONTEND & BACKEND END-TO-END VERIFICATION WALKTHROUGH")
@@ -39,9 +46,9 @@ print("-" * 80)
 run_id = f"demo_walkthrough_{int(time.time())}"
 denial_payload = {
     "run_id": run_id,
-    "principal": "arn:aws:iam::123456789012:role/CedarShield-FinanceAgent-Role",
+    "principal": f"arn:aws:iam::{ACCOUNT_ID}:role/CedarShield-FinanceAgent-Role",
     "action": "process-refund",
-    "resource": "arn:aws:bedrock-agentcore:ap-southeast-2:123456789012:gateway/cedarshieldgateway-pgs4beuirv",
+    "resource": f"arn:aws:bedrock-agentcore:{REGION}:{ACCOUNT_ID}:gateway/cedarshieldgateway-sample",
     "amount": 2000,
     "reason": "VIP customer expedited refund ($2,000 > $500 initial limit)"
 }
@@ -125,7 +132,7 @@ approve_event = {
         "content-type": "application/json"
     },
     "requestContext": {
-        "accountId": "123456789012",
+        "accountId": ACCOUNT_ID,
         "apiId": "mwrzzbhzu8",
         "authorizer": {
             "jwt": {

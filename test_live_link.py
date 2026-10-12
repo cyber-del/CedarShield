@@ -1,10 +1,10 @@
+import os
 import urllib.request
-import json
 import re
 
-url = "http://cedarshield-web-123456789012-ap-southeast-2.s3-website-ap-southeast-2.amazonaws.com/"
+url = os.environ.get("TARGET_DASHBOARD_URL", "https://cyber-del.github.io/CedarShield/")
 print("=" * 70)
-print("CHECKING LIVE CEDARSHIELD S3 WEBSITE")
+print("CHECKING LIVE CEDARSHIELD GITHUB PAGES")
 print("=" * 70)
 print("Target URL:", url)
 
@@ -28,33 +28,6 @@ try:
         with urllib.request.urlopen(urllib.request.Request(asset_url, headers={"User-Agent": "Mozilla/5.0"}), timeout=10) as a_resp:
             content = a_resp.read()
             print(f"  [PASS] {asset:<35} -> HTTP {a_resp.getcode()} ({a_resp.headers.get('Content-Type')}, {len(content):,} bytes)")
-
-    # Check AWS Cognito Endpoint
-    print("\nAWS Cognito Cloud Authentication Check:")
-    cognito_url = "https://cognito-idp.ap-southeast-2.amazonaws.com/"
-    payload = {
-        "AuthFlow": "USER_PASSWORD_AUTH",
-        "ClientId": "sample_app_client",
-        "AuthParameters": {
-            "USERNAME": "security-reviewer@example.com",
-            "PASSWORD": "[REDACTED_PASSWORD]"
-        }
-    }
-    req = urllib.request.Request(
-        cognito_url,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/x-amz-json-1.1",
-            "X-Amz-Target": "AWSCognitoIdentityProviderService.InitiateAuth"
-        }
-    )
-    with urllib.request.urlopen(req, timeout=10) as c_resp:
-        c_data = json.loads(c_resp.read().decode("utf-8"))
-        auth_res = c_data.get("AuthenticationResult", {})
-        print(f"  [PASS] Cognito Endpoint Status: HTTP {c_resp.getcode()} OK")
-        print(f"         JWT ID Token Issued: {bool(auth_res.get('IdToken'))}")
-        print(f"         JWT Access Token Issued: {bool(auth_res.get('AccessToken'))}")
-        print(f"         Token Expiration: {auth_res.get('ExpiresIn')}s")
 
     print("\n" + "=" * 70)
     print("ALL CHECKS PASSED: Live link is 100% ONLINE, healthy, and operational!")

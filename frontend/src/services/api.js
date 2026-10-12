@@ -1,28 +1,29 @@
-// CedarShield API & Cognito Integration Service
-
+// CedarShield API & Governance Integration Service
 export const API_BASE_URL = typeof window !== "undefined" && window.location.hostname === "localhost"
   ? "/api"
-  : "https://mwrzzbhzu8.execute-api.ap-southeast-2.amazonaws.com/prod";
+  : (import.meta.env.VITE_API_BASE_URL || "/api");
 
 export const COGNITO_CONFIG = {
-  region: "ap-southeast-2",
-  userPoolId: "us-east-1_sample_pool",
-  clientId: "sample_app_client",
+  region: import.meta.env.VITE_AWS_REGION || "us-east-1",
+  userPoolId: import.meta.env.VITE_COGNITO_USER_POOL_ID || "us-east-1_sandbox",
+  clientId: import.meta.env.VITE_COGNITO_CLIENT_ID || "sandbox_client_id",
 };
 
-const GATEWAY_ARN = "arn:aws:bedrock-agentcore:ap-southeast-2:123456789012:gateway/cedarshieldgateway-pgs4beuirv";
-const FINANCE_ROLE = "arn:aws:iam::123456789012:role/CedarShield-FinanceAgent-Role";
+const ACCOUNT_ID = import.meta.env.VITE_AWS_ACCOUNT_ID || "123456789012";
+const REGION = import.meta.env.VITE_AWS_REGION || "us-east-1";
+const GATEWAY_ARN = `arn:aws:bedrock-agentcore:${REGION}:${ACCOUNT_ID}:gateway/cedarshieldgateway-sample`;
+const FINANCE_ROLE = `arn:aws:iam::${ACCOUNT_ID}:role/CedarShield-FinanceAgent-Role`;
 
 export const BASELINE_CEDAR = `// Policy: Process Refund
 permit (
     principal is AgentCore::IamEntity,
     action == AgentCore::Action::"process-refund",
-    resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:ap-southeast-2:123456789012:gateway/cedarshieldgateway-pgs4beuirv"
+    resource == AgentCore::Gateway::"${GATEWAY_ARN}"
 )
 when {
     (
-        principal.id like "arn:aws:iam::123456789012:role/*FinanceAgent*" ||
-        principal.id like "arn:aws:sts::123456789012:assumed-role/CedarShield-FinanceAgent-Role/*"
+        principal.id like "arn:aws:iam::${ACCOUNT_ID}:role/*FinanceAgent*" ||
+        principal.id like "arn:aws:sts::${ACCOUNT_ID}:assumed-role/CedarShield-FinanceAgent-Role/*"
     ) &&
     context has amount && context.amount <= 500
 };`;
@@ -31,12 +32,12 @@ export const PATCHED_CEDAR = `// Policy: Process Refund
 permit (
     principal is AgentCore::IamEntity,
     action == AgentCore::Action::"process-refund",
-    resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:ap-southeast-2:123456789012:gateway/cedarshieldgateway-pgs4beuirv"
+    resource == AgentCore::Gateway::"${GATEWAY_ARN}"
 )
 when {
     (
-        principal.id like "arn:aws:iam::123456789012:role/*FinanceAgent*" ||
-        principal.id like "arn:aws:sts::123456789012:assumed-role/CedarShield-FinanceAgent-Role/*"
+        principal.id like "arn:aws:iam::${ACCOUNT_ID}:role/*FinanceAgent*" ||
+        principal.id like "arn:aws:sts::${ACCOUNT_ID}:assumed-role/CedarShield-FinanceAgent-Role/*"
     ) &&
     context has amount && context.amount <= 2500
 };`;
@@ -160,7 +161,7 @@ const INITIAL_LEDGER = [
     timestamp: "2026-09-18T14:45:00.000Z",
     principal: "CedarShield-FinanceAgent-Role",
     action: 'AgentCore::Action::"process-refund"',
-    approver_identity: "security-reviewer@example.com (sub: 592e8478-5071-704b-ac47-d8249f35872c)",
+    approver_identity: "reviewer-sandbox@cedarshield.internal (sub: sandbox-reviewer-001)",
     current_policy: BASELINE_CEDAR,
     final_decision: "APPLIED",
     status: "APPROVED",
@@ -259,18 +260,28 @@ export async function authenticateCognitoUser(username, password) {
   return session;
 }
 
-const DEFAULT_COGNITO_SESSION = {
-  email: "security-reviewer@example.com",
-  sub: "592e8478-5071-704b-ac47-d8249f35872c",
+export const DEFAULT_COGNITO_SESSION = {
+  email: "reviewer-sandbox@cedarshield.internal",
+  sub: "sandbox-evaluator-id-001",
   tokenType: "Bearer",
   expiresIn: 3600,
+  isSyntheticSandbox: true,
   authenticatedAt: new Date().toISOString(),
   claims: {
-    email: "security-reviewer@example.com",
-    sub: "592e8478-5071-704b-ac47-d8249f35872c",
+    email: "reviewer-sandbox@cedarshield.internal",
+    sub: "sandbox-evaluator-id-001",
     "cognito:groups": ["SecurityReviewers", "PolicyAdmins"],
   }
 };
+
+export function createSyntheticSession() {
+  const session = {
+    ...DEFAULT_COGNITO_SESSION,
+    authenticatedAt: new Date().toISOString()
+  };
+  localStorage.setItem("cedarshield_cognito_session", JSON.stringify(session));
+  return session;
+}
 
 export function getStoredSession() {
   try {
@@ -311,7 +322,7 @@ export async function triggerDenial(payload) {
   const diffText = `--- process_refund.cedar (current)
 +++ process_refund.cedar (proposed)
 @@ -8,4 +8,4 @@
-         principal.id like "arn:aws:sts::123456789012:assumed-role/CedarShield-FinanceAgent-Role/*"
+         principal.id like "arn:aws:sts::${ACCOUNT_ID}:assumed-role/CedarShield-FinanceAgent-Role/*"
      ) &&
 -    context has amount && context.amount <= 500
 +    context has amount && context.amount <= 2500
@@ -401,7 +412,7 @@ export async function approvePatch(runId, idToken) {
   const prevHash = latest?.record_hash || "0".repeat(64);
 
   const approverSession = getStoredSession();
-  const approverEmail = approverSession?.email || "security-reviewer@example.com";
+  const approverEmail = approverSession?.email || "reviewer-sandbox@cedarshield.internal";
 
   const newBlock = {
     sequence_number: newSeq,
