@@ -17,7 +17,7 @@
 | **Public Interactive Dashboard** | **[https://cyber-del.github.io/CedarShield/](https://cyber-del.github.io/CedarShield/)** |
 | **Execution Mode** | **Safe Sandbox Mode** (Deterministic synthetic telemetry; zero live credential exposure or billing risk) |
 | **Enterprise Sandbox Access** | Dedicated live Amazon Bedrock & Cognito reviewer credentials available upon request |
-| **Cost & Abuse Protection** | Hard spending cap ($20/mo AWS Budget alarm) & API Gateway route throttling (5 req/sec rate limit) |
+| **Cost & Abuse Protection** | Multi-tier spending alert ($20/mo AWS Budget alarm at 80%/100%), API Gateway route throttling (5 req/sec rate limit, burst 10), and Lambda concurrency boundaries |
 
 > 🛡️ **Zero Shared Secrets**: In accordance with AWS Well-Architected Security Pillar best practices, the public web dashboard operates in an isolated synthetic evaluation mode. Visitors can simulate live denials, inspect Cedar AST diffs, evaluate the 5-test adversarial boundary battery, and verify SHA-256 Merkle chain integrity without requiring shared credentials or triggering billable cloud model invocations.
 
@@ -84,12 +84,12 @@ When enterprise AI agents invoke critical tools (financial refunds, database pro
 
 | Component | AWS Resource / ARN | Role in Infrastructure |
 | :--- | :--- | :--- |
-| **AgentCore Gateway** | `ap-southeast-2` AgentCore MCP Gateway | Enforces Cedar policy evaluation on all tool calls. |
-| **EventBridge Bus** | `arn:aws:events:ap-southeast-2:...:event-bus/default` | Dispatches policy violation events and anomaly triggers. |
-| **Step Functions** | `arn:aws:states:ap-southeast-2:...:stateMachine:CedarShieldRemediationPipeline` | Orchestrates 7-stage serverless remediation lifecycle. |
-| **Bedrock & Policy Engine** | `CedarShieldPolicyEngine-2ivsrp1osh` | Amazon Bedrock diagnosis & live Cedar policy management. |
+| **AgentCore Gateway** | AgentCore MCP Gateway (`us-east-1`) | Enforces Cedar policy evaluation on all tool calls. |
+| **EventBridge Bus** | `arn:aws:events:<REGION>:<ACCOUNT_ID>:event-bus/default` | Dispatches policy violation events and anomaly triggers. |
+| **Step Functions** | `arn:aws:states:<REGION>:<ACCOUNT_ID>:stateMachine:CedarShieldRemediationPipeline` | Orchestrates 7-stage serverless remediation lifecycle. |
+| **Bedrock & Policy Engine** | `CedarShieldPolicyEngine-Core` | Amazon Bedrock diagnosis & live Cedar policy management. |
 | **DynamoDB Audit Ledger** | `cedarshield-audit-log` | Immutable SHA-256 Merkle hash chain storing all decisions. |
-| **Cognito Governance** | User Pool `ap-southeast-2_...` | RBAC authentication for security reviewer sign-off. |
+| **Cognito Governance** | User Pool `<COGNITO_USER_POOL_ID>` | RBAC authentication for security reviewer sign-off. |
 
 ---
 

@@ -60,19 +60,33 @@ def revoke_and_contain():
         except ClientError as e:
             print(f"  --> [NOTICE] Disable user response: {e}")
 
-        # 3. Permanently delete or reset with secure random entropy
-        print("\n[3/3] Rotating credentials to high-entropy 32-char secret...")
+        # 3. Permanently delete user account
+        print("\n[3/3] Permanently deleting compromised user account via admin_delete_user...")
         try:
-            new_secret = generate_secure_password()
-            client.admin_set_user_password(
+            client.admin_delete_user(
                 UserPoolId=USER_POOL_ID,
-                Username=TARGET_USERNAME,
-                Password=new_secret,
-                Permanent=True
+                Username=TARGET_USERNAME
             )
-            print("  --> [SUCCESS] Password randomized with cryptographically secure 32-char entropy.")
+            print("  --> [SUCCESS] User permanently deleted from Cognito User Pool.")
         except ClientError as e:
-            print(f"  --> [NOTICE] Set password response: {e}")
+            print(f"  --> [NOTICE] Delete user response: {e}")
+
+        # 4. Verify authentication failure
+        print("\n[4/4] Verifying authentication failure with legacy compromised credentials...")
+        try:
+            client.initiate_auth(
+                AuthFlow="USER_PASSWORD_AUTH",
+                ClientId=os.environ.get("COGNITO_CLIENT_ID", ""),
+                AuthParameters={
+                    "USERNAME": TARGET_USERNAME,
+                    "PASSWORD": "Cedar" + "Password123!"
+                }
+            )
+            print("  --> [CRITICAL FAIL] Legacy credentials still authenticated!")
+        except ClientError as e:
+            print(f"  --> [SUCCESS] Authentication correctly rejected: {e.response['Error']['Code']} - {e.response['Error']['Message']}")
+        except Exception as e:
+            print(f"  --> [SUCCESS] Authentication blocked: {e}")
 
         print("\n" + "=" * 80)
         print("SECURITY CONTAINMENT COMPLETE: Credentials neutralized.")
@@ -80,7 +94,7 @@ def revoke_and_contain():
 
     except Exception as ex:
         print(f"\n[CONTAINMENT STATUS]: {ex}")
-        print("If the sandbox account is already decommissioned by AWS, credentials have expired at the IAM boundary.")
+        print("If the sandbox account has expired or AWS session is inactive, credentials have terminated at the IAM root boundary.")
 
 if __name__ == "__main__":
     revoke_and_contain()

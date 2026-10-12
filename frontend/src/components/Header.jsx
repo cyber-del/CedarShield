@@ -36,10 +36,10 @@ export default function Header({ activeTab, setActiveTab, session, onOpenAuthMod
                   CedarShield
                 </span>
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded border border-ink-200 bg-surface-subtle text-ink-600 font-mono text-xs">
-                  <span className={`w-2 h-2 rounded-full ${isLive ? "bg-muted-green animate-pulse" : "bg-muted-amber"}`} />
-                  <span className="text-[10px] font-semibold text-muted-green tracking-wider">LIVE</span>
+                  <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
+                  <span className="text-[10px] font-semibold text-accent tracking-wider">SANDBOX</span>
                   <span className="text-ink-300">·</span>
-                  <span>ap-southeast-2</span>
+                  <span>SYNTHETIC RUNTIME</span>
                 </div>
               </div>
               <p className="text-xs text-ink-500 hidden sm:block">
