@@ -407,7 +407,7 @@ Resources:
   DiagnoseDenialFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/diagnose-denial/
+      CodeUri: ../src/functions/diagnose-denial/
       Handler: app.lambda_handler
       Role: !GetAtt DiagnoseDenialRole.Arn
       Description: Explains Cedar denial root cause using Amazon Bedrock
@@ -415,7 +415,7 @@ Resources:
   GeneratePatchFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/generate-patch/
+      CodeUri: ../src/functions/generate-patch/
       Handler: app.lambda_handler
       Role: !GetAtt GeneratePatchRole.Arn
       Description: Generates minimal .cedar patch diff using Amazon Bedrock
@@ -423,7 +423,7 @@ Resources:
   GenerateAdversarialTestsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/generate-adversarial-tests/
+      CodeUri: ../src/functions/generate-adversarial-tests/
       Handler: app.lambda_handler
       Role: !GetAtt GenerateAdversarialTestsRole.Arn
       Description: Generates adversarial edge-case test battery using Amazon Bedrock
@@ -431,7 +431,7 @@ Resources:
   VerifyPatchFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/verify-patch/
+      CodeUri: ../src/functions/verify-patch/
       Handler: app.lambda_handler
       Role: !GetAtt VerifyPatchRole.Arn
       Description: Executes in-process Cedar verification matrix
@@ -439,7 +439,7 @@ Resources:
   AwaitApprovalHandlerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/await-approval-handler/
+      CodeUri: ../src/functions/await-approval-handler/
       Handler: app.lambda_handler
       Role: !GetAtt AwaitApprovalHandlerRole.Arn
       Description: Saves Step Functions Task Token to DynamoDB for human review
@@ -450,7 +450,7 @@ Resources:
   ToolProcessRefundFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/tool-process-refund/
+      CodeUri: ../src/functions/tool-process-refund/
       Handler: app.lambda_handler
       Role: !GetAtt ToolsExecutionRole.Arn
       Description: Tool for processing customer refunds
@@ -458,7 +458,7 @@ Resources:
   ToolReadRecordFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/tool-read-record/
+      CodeUri: ../src/functions/tool-read-record/
       Handler: app.lambda_handler
       Role: !GetAtt ToolsExecutionRole.Arn
       Description: Tool for reading database records
@@ -466,7 +466,7 @@ Resources:
   ToolDeleteResourceFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/tool-delete-resource/
+      CodeUri: ../src/functions/tool-delete-resource/
       Handler: app.lambda_handler
       Role: !GetAtt ToolsExecutionRole.Arn
       Description: Tool for deleting system resources
@@ -705,7 +705,7 @@ Resources:
   TriggerDenialFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/api-trigger-denial/
+      CodeUri: ../src/functions/api-trigger-denial/
       Handler: app.lambda_handler
       Role: !GetAtt ApiTriggerDenialRole.Arn
       Environment:
@@ -722,7 +722,7 @@ Resources:
   AuditLogFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/api-audit-log/
+      CodeUri: ../src/functions/api-audit-log/
       Handler: app.lambda_handler
       Role: !GetAtt ApiAuditLogRole.Arn
       Events:
@@ -736,7 +736,7 @@ Resources:
   ApproveFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/api-approve/
+      CodeUri: ../src/functions/api-approve/
       Handler: app.lambda_handler
       Role: !GetAtt ApiApproveRole.Arn
       Events:
@@ -752,7 +752,7 @@ Resources:
   RejectFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/api-reject/
+      CodeUri: ../src/functions/api-reject/
       Handler: app.lambda_handler
       Role: !GetAtt ApiRejectRole.Arn
       Events:
@@ -768,7 +768,7 @@ Resources:
   FrontendServerFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/frontend-server/
+      CodeUri: ../src/functions/frontend-server/
       Handler: app.lambda_handler
       Role: !GetAtt ApiAuditLogRole.Arn
       Description: Serves the CedarShield Single Page Application
@@ -789,7 +789,7 @@ Resources:
   ApiRouterFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: functions/api-router/
+      CodeUri: ../src/functions/api-router/
       Handler: app.lambda_handler
       Role: !GetAtt ApiApproveRole.Arn
       Description: Unified backend API router for CedarShield

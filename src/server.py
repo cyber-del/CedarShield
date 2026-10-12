@@ -315,7 +315,8 @@ class CedarShieldApiHandler(http.server.BaseHTTPRequestHandler):
             self.send_json({"status": "HEALTHY", "region": REGION, "timestamp": datetime.now(timezone.utc).isoformat()}, 200)
         else:
             # Serve Static SPA files from frontend/dist
-            dist_dir = os.path.join(os.path.dirname(__file__), "frontend", "dist")
+            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+            dist_dir = os.path.join(project_root, "frontend", "dist")
             rel_path = parsed.path.lstrip("/")
             if not rel_path:
                 rel_path = "index.html"

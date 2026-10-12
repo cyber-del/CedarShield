@@ -3,10 +3,13 @@ import os
 import shutil
 import tempfile
 
-print("Building frontend...")
-subprocess.run(["npm", "run", "build"], cwd="frontend", check=True, shell=True)
+repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+frontend_dir = os.path.join(repo_root, "frontend")
+dist_dir = os.path.join(frontend_dir, "dist")
 
-dist_dir = os.path.abspath("frontend/dist")
+print("Building frontend...")
+subprocess.run(["npm", "run", "build"], cwd=frontend_dir, check=True, shell=True)
+
 temp_dir = tempfile.mkdtemp()
 
 try:

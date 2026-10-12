@@ -1,0 +1,13 @@
+# CedarShield Core Dependencies
+boto3>=1.34.0
+botocore>=1.34.0
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
+requests>=2.31.0
+cedarpy>=0.3.0
+
+# Development & Testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+detect-secrets>=1.5.0
