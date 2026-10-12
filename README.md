@@ -10,16 +10,16 @@
 
 ---
 
-## 🌐 Live Interactive Demo & Security Isolation
+## 🌐 Interactive Dashboard & Architectural Status
 
-| Resource | Access Method / Environment |
+| Resource | Environment & Operational Status |
 | :--- | :--- |
-| **Public Interactive Dashboard** | **[https://cyber-del.github.io/CedarShield/](https://cyber-del.github.io/CedarShield/)** |
-| **Execution Mode** | **Safe Sandbox Mode** (Deterministic synthetic telemetry; zero live credential exposure or billing risk) |
-| **Enterprise Sandbox Access** | Dedicated live Amazon Bedrock & Cognito reviewer credentials available upon request |
-| **Cost & Abuse Protection** | Multi-tier spending alert ($20/mo AWS Budget alarm at 80%/100%), API Gateway route throttling (5 req/sec rate limit, burst 10), and Lambda concurrency boundaries |
+| **Public Dashboard** | **[https://cyber-del.github.io/CedarShield/](https://cyber-del.github.io/CedarShield/)** |
+| **Execution Mode** | **Synthetic Sandbox Mode** (Deterministic client-side evaluation; zero live credential dependency or billing risk) |
+| **Deployment History** | Deployed during the hackathon in a temporary AWS sandbox; following hackathon conclusion, the public dashboard operates permanently in synthetic mode. |
+| **Cost & Abuse Controls** | Codified in `template.yaml` (AWS Budget alarm at 80%/100% and API Gateway 5 req/sec route throttling; ready for deployment in a dedicated account). |
 
-> 🛡️ **Zero Shared Secrets**: In accordance with AWS Well-Architected Security Pillar best practices, the public web dashboard operates in an isolated synthetic evaluation mode. Visitors can simulate live denials, inspect Cedar AST diffs, evaluate the 5-test adversarial boundary battery, and verify SHA-256 Merkle chain integrity without requiring shared credentials or triggering billable cloud model invocations.
+> 🛡️ **Zero Shared Secrets & Synthetic Architecture**: The public web dashboard runs entirely in synthetic evaluation mode. Visitors can simulate policy denials, inspect Cedar AST diffs, evaluate the 5-test adversarial boundary battery, and verify SHA-256 Merkle chain integrity without requiring live AWS credentials or triggering unconstrained model invocations.
 
 ---
 
