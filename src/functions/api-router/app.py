@@ -140,14 +140,14 @@ def call_live_mcp_gateway(tool_name: str, arguments: dict, role_arn: str):
     body_bytes = json.dumps(init_payload).encode("utf-8")
     req = AWSRequest(method="POST", url=GATEWAY_MCP_URL, data=body_bytes, headers={"Content-Type": "application/json"})
     SigV4Auth(creds, "bedrock-agentcore", REGION).add_auth(req)
-    
+
     urllib_req = urllib.request.Request(
         GATEWAY_MCP_URL,
         data=body_bytes,
         headers=dict(req.headers)
     )
     try:
-        with urllib.request.urlopen(urllib_req, timeout=5) as resp:
+        with urllib.request.urlopen(urllib_req, timeout=5):
             pass
     except Exception:
         pass
@@ -181,7 +181,7 @@ def call_live_mcp_gateway(tool_name: str, arguments: dict, role_arn: str):
             return he.code, resp_data, caller_arn
         except Exception:
             return he.code, {"error": {"code": -32002, "message": str(he)}}, caller_arn
-    except Exception as e:
+    except Exception:
         return 400, {
             "jsonrpc": "2.0",
             "error": {
@@ -293,14 +293,14 @@ when {{
     context has amount && context.amount <= 2500
 }};"""
 
-        diff_text = f"""--- process_refund.cedar (current)
+        diff_text = """--- process_refund.cedar (current)
 +++ process_refund.cedar (proposed)
 @@ -8,4 +8,4 @@
          principal.id like "arn:aws:sts::123456789012:assumed-role/CedarShield-FinanceAgent-Role/*"
      ) &&
 -    context has amount && context.amount <= 500
 +    context has amount && context.amount <= 2500
- }};"""
+ };"""
 
         test_matrix = [
             {"test_id": "test_boundary_exact", "description": "Exact threshold boundary ($2,500 by FinanceAgent)", "principal": "FinanceAgent-Role", "expected": "PERMIT", "actual": "PERMIT", "status": "PASSED"},
@@ -484,7 +484,7 @@ when {{
             amounts = body.get("amounts", [2450, 2480, 2490])
             action = body.get("action", "process-refund")
             principal = body.get("principal", "arn:aws:iam::123456789012:role/CedarShield-FinanceAgent-Role")
-            
+
             now_base = time.time()
             telemetry_samples = [
                 {
@@ -509,7 +509,7 @@ when {{
                 )
 
                 pre_patch_statement, source_run_id, source_seq = find_previous_policy_from_audit_ledger(action)
-                
+
                 try:
                     control_client.update_policy(
                         policyEngineId=ENGINE_ID,

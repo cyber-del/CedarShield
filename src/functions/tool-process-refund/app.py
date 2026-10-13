@@ -1,4 +1,3 @@
-import json
 
 def lambda_handler(event, context):
     amount = event.get("amount", 0)

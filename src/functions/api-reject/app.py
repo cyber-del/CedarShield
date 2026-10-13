@@ -16,14 +16,14 @@ def lambda_handler(event, context):
     and updates the audit log.
     """
     print("RejectFunction received event:", json.dumps(event, default=str))
-    
+
     body = {}
     if "body" in event and event["body"]:
         try:
             body = json.loads(event["body"])
         except Exception:
             body = {}
-            
+
     run_id = body.get("run_id")
     reason = body.get("reason", "Human security reviewer rejected the policy expansion.")
     if not run_id:
@@ -32,7 +32,7 @@ def lambda_handler(event, context):
             "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
             "body": json.dumps({"error": "Missing required field 'run_id'"})
         }
-        
+
     table = dynamodb.Table(DYNAMODB_TABLE)
     item_resp = table.get_item(Key={"run_id": run_id})
     item = item_resp.get("Item")
@@ -42,7 +42,7 @@ def lambda_handler(event, context):
             "headers": {"Content-Type": "application/json", "Access-Control-Allow-Origin": "*"},
             "body": json.dumps({"error": f"Run ID '{run_id}' not found"})
         }
-        
+
     task_token = item.get("task_token")
     if task_token:
         try:
@@ -61,7 +61,7 @@ def lambda_handler(event, context):
     claims = jwt_data.get("claims", {})
     approver_email = claims.get("email") or claims.get("cognito:username") or claims.get("username")
     approver_sub = claims.get("sub", "")
-    
+
     if approver_email and approver_sub:
         approver_identity = f"{approver_email} (sub: {approver_sub})"
     elif approver_email:

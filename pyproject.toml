@@ -52,5 +52,30 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests/unit", "tests/integration"]
+norecursedirs = ["tests/live", ".git", "frontend", "infra", "scripts"]
 python_files = ["test_*.py"]
+addopts = "-m 'not live' --strict-markers"
+markers = [
+    "live: marks tests as requiring real AWS credentials and cloud infrastructure",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = [
+    ".git",
+    "__pycache__",
+    "frontend",
+    "tests/live",
+    "scripts",
+    ".gemini",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501"]
+

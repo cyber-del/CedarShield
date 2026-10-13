@@ -92,22 +92,42 @@ def find_previous_policy_from_audit_ledger(action="process-refund"):
 
     return BASELINE_CEDAR_STATEMENT, "fallback_baseline", "1"
 
-def evaluate_and_rollback(recent_invocations):
+def parse_call_timestamp(call, default_time):
+    t = call.get("timestamp")
+    if t is None:
+        return default_time
+    if isinstance(t, (int, float)):
+        return float(t)
+    if isinstance(t, str):
+        try:
+            return datetime.fromisoformat(t.replace("Z", "+00:00")).timestamp()
+        except Exception:
+            return default_time
+    return default_time
+
+def evaluate_and_rollback(recent_invocations, now_timestamp=None, window_seconds=180, ceiling=2500, threshold_ratio=0.90):
     """
     Evaluates invocations for near-ceiling clustering or volume spikes.
-    Threshold: 3+ invocations >= $2,250 (90% of $2,500 ceiling) within 5 minutes.
+    Threshold: 3+ invocations >= 90% of ceiling ($2,250) within sliding window (default: 3 minutes / 180 seconds).
+    Accepts now_timestamp for deterministic testing with a fake clock.
     """
+    current_time = time.time() if now_timestamp is None else float(now_timestamp)
+    threshold_amount = ceiling * threshold_ratio
+
     near_ceiling_calls = []
     for call in recent_invocations:
-        amount = call.get("amount", 0)
-        if amount >= 2250:
-            near_ceiling_calls.append(call)
+        call_time = parse_call_timestamp(call, current_time)
+        # Check if call is within the sliding window [current_time - window_seconds, current_time]
+        if (current_time - window_seconds) <= call_time <= (current_time + 1.0):
+            amount = call.get("amount", 0)
+            if amount >= threshold_amount:
+                near_ceiling_calls.append(call)
 
     if len(near_ceiling_calls) >= 3:
         amounts_str = ", ".join([f"${c.get('amount')}" for c in near_ceiling_calls])
         anomaly_reason = (
             f"Suspicious clustering anomaly detected: {len(near_ceiling_calls)} near-ceiling calls "
-            f"({amounts_str}) within 5 minutes exceeding 90% threshold ($2,250) of active ceiling ($2,500)."
+            f"({amounts_str}) within {window_seconds // 60} minutes exceeding 90% threshold (${int(threshold_amount)}) of active ceiling (${ceiling})."
         )
 
         print(f"ANOMALY TRIGGERED: {anomaly_reason}")
@@ -186,7 +206,9 @@ def lambda_handler(event, context):
     # In production, scan recent CloudWatch/DynamoDB tool usage logs from the last 5 minutes
     # For demo & scheduled runs, retrieve recent post-patch telemetry
     recent_invocations = event.get("recent_invocations", [])
-    result = evaluate_and_rollback(recent_invocations)
+    now_timestamp = event.get("now_timestamp")
+    window_seconds = event.get("window_seconds", 180)
+    result = evaluate_and_rollback(recent_invocations, now_timestamp=now_timestamp, window_seconds=window_seconds)
     return {
         "statusCode": 200,
         "body": json.dumps(result)

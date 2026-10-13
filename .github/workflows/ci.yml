@@ -1,0 +1,83 @@
+name: CedarShield CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  backend-tests:
+    name: Lint, Infrastructure & Backend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Ruff Linter
+        run: |
+          ruff check .
+
+      - name: Validate CloudFormation SAM Template with cfn-lint
+        run: |
+          cfn-lint infra/template.yaml
+
+      - name: Run Pytest Suite with Coverage (>= 70%)
+        env:
+          AWS_DEFAULT_REGION: ap-southeast-2
+          AWS_REGION_NAME: ap-southeast-2
+          AUDIT_TABLE_NAME: cedarshield-audit-log
+          DYNAMODB_TABLE: cedarshield-audit-log
+        run: |
+          pytest -m "not live" --cov=src --cov-fail-under=70 --cov-report=term-missing --cov-report=xml
+
+  frontend-build:
+    name: Frontend Validation & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Build Frontend SPA
+        run: npm run build
+
+  security-scan:
+    name: Gitleaks Secret Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository with full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

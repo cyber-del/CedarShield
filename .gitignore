@@ -42,6 +42,14 @@ temp_*.json
 *.env.*
 *.bak
 
+# Testing & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.ruff_cache/
+
 # IDE & OS
 .vscode/
 .idea/

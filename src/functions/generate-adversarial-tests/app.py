@@ -1,7 +1,6 @@
 import json
 import os
 import boto3
-from datetime import datetime
 
 DYNAMODB_TABLE = os.environ.get("AUDIT_TABLE_NAME", "cedarshield-audit-log")
 REGION = os.environ.get("AWS_REGION_NAME", "ap-southeast-2")
@@ -16,16 +15,16 @@ def lambda_handler(event, context):
     to evaluate the proposed Cedar policy patch.
     """
     print("GenerateAdversarialTests received event:", json.dumps(event))
-    
+
     run_id = event.get("run_id")
     patch = event.get("patch", {})
     arguments = event.get("arguments", {})
     retry_count = event.get("retry_count", 0)
-    
+
     amount = arguments.get("amount", 2000)
     target_limit = patch.get("target_limit", 2500)
     proposed_policy = patch.get("proposed_policy", "")
-    
+
     prompt = f"""You are CedarShield Adversarial Test Generator.
 Given this proposed Cedar policy:
 {proposed_policy}
@@ -46,7 +45,7 @@ Return JSON array under key 'test_cases' where each item has:
 - expected_decision: PERMIT | DENY
 - reason: rationale
 """
-    
+
     test_cases = None
     try:
         body = json.dumps({

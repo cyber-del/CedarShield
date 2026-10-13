@@ -32,7 +32,7 @@ def lambda_handler(event, context):
     Handles root path, assets, and fallback routing to index.html.
     """
     raw_path = event.get("rawPath") or event.get("path") or "/"
-    
+
     # Strip stage prefix if present (e.g., /prod or /dev)
     if raw_path.startswith("/prod"):
         raw_path = raw_path[5:] or "/"
@@ -41,38 +41,38 @@ def lambda_handler(event, context):
 
     # Normalize clean relative path
     rel_path = raw_path.lstrip("/")
-    
+
     # If empty or root, serve index.html
     if not rel_path:
         rel_path = "index.html"
-        
+
     target_file = os.path.join(DIST_DIR, rel_path)
-    
+
     # Fallback to index.html for SPA client-side routing if file doesn't exist
     if not os.path.isfile(target_file):
         target_file = os.path.join(DIST_DIR, "index.html")
         rel_path = "index.html"
-        
+
     if not os.path.isfile(target_file):
         return {
             "statusCode": 404,
             "headers": {"Content-Type": "text/plain"},
             "body": "Frontend dist/index.html not found. Please build the frontend first."
         }
-        
+
     content_type = get_content_type(target_file)
     is_binary = any(content_type.startswith(b) for b in ["image/", "font/", "audio/", "video/", "application/octet-stream", "application/vnd.ms-fontobject"])
-    
+
     # Cache headers: long cache for fingerprinted assets, no-cache for index.html
     cache_control = "public, max-age=31536000, immutable" if "/assets/" in rel_path or "assets" in rel_path else "no-cache, no-store, must-revalidate"
-    
+
     headers = {
         "Content-Type": content_type,
         "Cache-Control": cache_control,
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS"
     }
-    
+
     if is_binary:
         with open(target_file, "rb") as f:
             b64_data = base64.b64encode(f.read()).decode("utf-8")

@@ -18,14 +18,14 @@ def lambda_handler(event, context):
     and initiates the remediation Step Functions pipeline.
     """
     print("TriggerDenialFunction received event:", json.dumps(event, default=str))
-    
+
     body = {}
     if "body" in event and event["body"]:
         try:
             body = json.loads(event["body"])
         except Exception:
             body = {}
-            
+
     run_id = body.get("run_id", f"run_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}")
     principal = body.get("principal", "arn:aws:iam::123456789012:role/CedarShield-FinanceAgent-Role")
     action = body.get("action", "process-refund")
@@ -33,13 +33,13 @@ def lambda_handler(event, context):
     amount = body.get("amount", 2000)
     reason = body.get("reason", "High-value VIP refund attempt")
     force_fail = body.get("force_fail", False)
-    
+
     arguments = {
         "amount": amount,
         "reason": reason,
         "force_fail": force_fail
     }
-    
+
     current_policy = f"""// Policy: Process Refund
 permit (
     principal is AgentCore::IamEntity,
@@ -65,7 +65,7 @@ when {{
         "current_policy": current_policy,
         "retry_count": 0
     }
-    
+
     # 1. Store in DynamoDB
     table = dynamodb.Table(DYNAMODB_TABLE)
     try:

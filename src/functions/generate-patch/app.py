@@ -1,7 +1,6 @@
 import json
 import os
 import boto3
-from datetime import datetime
 
 DYNAMODB_TABLE = os.environ.get("AUDIT_TABLE_NAME", "cedarshield-audit-log")
 REGION = os.environ.get("AWS_REGION_NAME", "ap-southeast-2")
@@ -12,6 +11,47 @@ bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
 # Maximum permitted threshold for autonomous remediation without human escalation
 MAX_AUTONOMOUS_THRESHOLD = 2500
 
+def validate_patch_guardrails(policy_text: str, max_threshold: int = MAX_AUTONOMOUS_THRESHOLD):
+    """
+    Validates candidate Cedar policy against strict safety guardrails:
+    1. Rejects unconditional policies (no 'when' clause).
+    2. Rejects condition stripping like 'when { true }' or 'when { true; }'.
+    3. Requires explicit context.amount boundary.
+    4. Validates that upper bound does not exceed max_threshold.
+    """
+    if not policy_text or not isinstance(policy_text, str):
+        return False, "Guardrail Violation: Empty or non-string policy candidate."
+
+    cleaned = " ".join(policy_text.split()).lower()
+
+    # 1. Reject unconditional permit
+    if "when {" not in cleaned and "when{" not in cleaned:
+        return False, "Guardrail Violation: Policy lacks conditional 'when' clause (unconditional permit is forbidden)."
+
+    # 2. Reject 'when { true }' or empty true condition
+    import re
+    if re.search(r'when\s*\{\s*true\s*;?\s*\}', cleaned):
+        return False, "Guardrail Violation: Policy condition 'when { true }' strips security controls."
+
+    # 3. Require principal constraint
+    if "principal.id" not in cleaned and "finance" not in cleaned:
+        return False, "Guardrail Violation: Policy must constrain principal identity."
+
+    # 4. Require amount constraint and verify boundary
+    if "amount <=" in cleaned:
+        try:
+            match = re.search(r'amount\s*<=\s*(\d+)', cleaned)
+            if match:
+                val = int(match.group(1))
+                if val > max_threshold:
+                    return False, f"Guardrail Violation: Bound ${val} exceeds autonomous ceiling of ${max_threshold}."
+        except Exception:
+            return False, "Guardrail Violation: Could not parse numerical boundary."
+    elif "context has amount" not in cleaned:
+        return False, "Guardrail Violation: Policy lacks required context attribute constraints."
+
+    return True, "Guardrails passed."
+
 def lambda_handler(event, context):
     """
     Step 2: GeneratePatch
@@ -19,7 +59,7 @@ def lambda_handler(event, context):
     Enforces a strict MAX_AUTONOMOUS_THRESHOLD ($2500) ceiling.
     """
     print("GeneratePatch received event:", json.dumps(event))
-    
+
     run_id = event.get("run_id")
     principal = event.get("principal")
     action = event.get("action")
@@ -28,9 +68,9 @@ def lambda_handler(event, context):
     current_policy = event.get("current_policy", "")
     diagnosis = event.get("diagnosis", {})
     retry_count = event.get("retry_count", 0)
-    
+
     amount = arguments.get("amount", 0)
-    
+
     # HARD GUARD: If the requested amount exceeds the autonomous safety ceiling, refuse patch generation
     if amount > MAX_AUTONOMOUS_THRESHOLD:
         print(f"SECURITY GUARD INTERVENTION: Requested amount ${amount} exceeds MAX_AUTONOMOUS_THRESHOLD (${MAX_AUTONOMOUS_THRESHOLD}). Escalating to Manual Review.")
@@ -47,10 +87,10 @@ def lambda_handler(event, context):
             "rejection_reason": f"Requested amount ${amount} exceeds maximum autonomous threshold of ${MAX_AUTONOMOUS_THRESHOLD}. Requires manual executive authorization.",
             "timestamp": event.get("timestamp")
         }
-    
+
     # Calculate proposed threshold within safety boundary
     target_limit = MAX_AUTONOMOUS_THRESHOLD
-    
+
     prompt = f"""You are CedarShield, a Cedar policy security synthesizer.
 Given this denial diagnosis:
 {json.dumps(diagnosis)}
@@ -65,7 +105,7 @@ Format your output as JSON with keys:
 - rationale: technical explanation of the change
 - risk_assessment: risk score (0-100) and security notes
 """
-    
+
     patch_result = None
     try:
         body = json.dumps({
@@ -83,7 +123,15 @@ Format your output as JSON with keys:
             text = text.split("```json")[1].split("```")[0].strip()
         elif "```" in text:
             text = text.split("```")[1].split("```")[0].strip()
-        patch_result = json.loads(text)
+        candidate = json.loads(text)
+
+        # Verify candidate against guardrails
+        is_safe, reason = validate_patch_guardrails(candidate.get("proposed_policy", ""))
+        if is_safe:
+            patch_result = candidate
+        else:
+            print(f"Guardrail violation in Bedrock response: {reason}")
+            raise ValueError(f"Bedrock generated an unsafe patch: {reason}")
     except Exception as e:
         print(f"Bedrock invocation fallback: {e}")
         proposed_policy = f"""// Policy: Process Refund (Patched by CedarShield)

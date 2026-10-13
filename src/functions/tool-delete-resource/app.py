@@ -1,4 +1,3 @@
-import json
 
 def lambda_handler(event, context):
     resource_id = event.get("resource_id", "res_default")

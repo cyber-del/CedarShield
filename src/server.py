@@ -373,7 +373,7 @@ class CedarShieldApiHandler(http.server.BaseHTTPRequestHandler):
 
             # 3. Evaluate Autonomous Ceiling
             is_ceiling_breached = (amount > 2500) or force_fail
-            
+
             # 4. Formulate diagnosis & patch
             if is_ceiling_breached:
                 diagnosis = {
@@ -651,7 +651,7 @@ class CedarShieldApiHandler(http.server.BaseHTTPRequestHandler):
                 amounts = body.get("amounts", [2450, 2480, 2490])
                 action = body.get("action", "process-refund")
                 principal = body.get("principal", "arn:aws:iam::123456789012:role/CedarShield-FinanceAgent-Role")
-                
+
                 now_base = time.time()
                 telemetry_samples = [
                     {
@@ -764,8 +764,7 @@ class CedarShieldApiHandler(http.server.BaseHTTPRequestHandler):
                         "block": rollback_block,
                         "policy_engine_id": ENGINE_ID,
                         "reverted_policy_id": "ProcessRefundPolicy-kryp2370fb",
-                        "policy_reverted_live": policy_reverted,
-                        "block": rollback_block
+                        "policy_reverted_live": policy_reverted
                     }, 200)
                 else:
                     self.send_json({

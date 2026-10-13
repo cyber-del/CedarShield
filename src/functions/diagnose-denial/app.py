@@ -15,7 +15,7 @@ def lambda_handler(event, context):
     Analyzes Cedar denial context and explains root cause using Amazon Bedrock with semantic fallback.
     """
     print("DiagnoseDenial received event:", json.dumps(event))
-    
+
     # Extract event data (from Step Functions input or direct EventBridge payload)
     detail = event.get("detail", event)
     run_id = detail.get("run_id", f"run_{int(datetime.utcnow().timestamp())}")
@@ -24,9 +24,9 @@ def lambda_handler(event, context):
     resource = detail.get("resource", "arn:aws:bedrock-agentcore:ap-southeast-2:123456789012:gateway/cedarshieldgateway-pgs4beuirv")
     arguments = detail.get("arguments", {"amount": 2000, "reason": "High-value VIP refund attempt"})
     current_policy = detail.get("current_policy", "permit (principal is AgentCore::IamEntity, action == AgentCore::Action::\"process-refund\", resource == AgentCore::Gateway::\"arn:aws:bedrock-agentcore:ap-southeast-2:123456789012:gateway/cedarshieldgateway-pgs4beuirv\") when { (principal.id like \"*FinanceAgent*\") && context has amount && context.amount <= 500 };")
-    
+
     amount = arguments.get("amount", 0)
-    
+
     # Prompt for Bedrock LLM
     prompt = f"""You are CedarShield, an AI policy diagnostic expert for AWS Cedar and Amazon Bedrock AgentCore.
 Analyze the following policy denial:
@@ -42,7 +42,7 @@ Explain:
 3. The business intent vs policy boundary mismatch.
 Return your response as JSON with keys: root_cause, failing_conditions, confidence_score, intent_analysis.
 """
-    
+
     diagnosis = None
     try:
         body = json.dumps({
@@ -70,7 +70,7 @@ Return your response as JSON with keys: root_cause, failing_conditions, confiden
             failing_conditions.append(f"context.amount ({amount}) <= 500 threshold violation")
         if "Admin" in action and "Admin" not in principal:
             failing_conditions.append(f"Principal {principal} lacks Admin privileges for {action}")
-        
+
         diagnosis = {
             "root_cause": f"The request parameter amount (${amount}) exceeded the maximum authorized limit of $500 specified in the Cedar ProcessRefundPolicy condition.",
             "failing_conditions": failing_conditions or [f"Clause 'context.amount <= 500' evaluated to false for amount={amount}"],
@@ -83,8 +83,8 @@ Return your response as JSON with keys: root_cause, failing_conditions, confiden
     try:
         table.update_item(
             Key={"run_id": run_id},
-            UpdateExpression="SET #ts = :ts, principal = :p, #act = :a, resource = :r, arguments = :args, diagnosis = :diag, #st = :st",
-            ExpressionAttributeNames={"#ts": "timestamp", "#act": "action", "#st": "status"},
+            UpdateExpression="SET #ts = :ts, principal = :p, #act = :a, #res = :r, arguments = :args, diagnosis = :diag, #st = :st",
+            ExpressionAttributeNames={"#ts": "timestamp", "#act": "action", "#st": "status", "#res": "resource"},
             ExpressionAttributeValues={
                 ":ts": datetime.utcnow().isoformat() + "Z",
                 ":p": principal,

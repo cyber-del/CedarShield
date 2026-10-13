@@ -3,7 +3,6 @@ CedarShield Demo Agent: Live AgentCore Gateway Client
 Invokes tools through Bedrock AgentCore Gateway with IAM SigV4 signing
 and captures real AgentCore Policy Cedar DENIAL responses.
 """
-import sys
 import json
 import requests
 import botocore.session

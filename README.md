@@ -2,6 +2,8 @@
 
 ### Autonomous Authorization Drift Diagnosis, Remediation, and Governance for AI Agents
 
+[![CI](https://github.com/cyber-del/CedarShield/actions/workflows/ci.yml/badge.svg)](https://github.com/cyber-del/CedarShield/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/Coverage-78%25-brightgreen.svg)]()
 [![AWS Bedrock AgentCore](https://img.shields.io/badge/AWS-Amazon_Bedrock_AgentCore-orange?logo=amazon-aws)](https://aws.amazon.com/bedrock/)
 [![AWS Step Functions](https://img.shields.io/badge/Orchestration-Step_Functions-FF4F8B?logo=amazon-aws)](https://aws.amazon.com/step-functions/)
 [![Cedar Policy Language](https://img.shields.io/badge/AuthZ-Cedar_Policy_Language-4B0082)](https://www.cedarpolicy.com/)
@@ -22,7 +24,7 @@ When enterprise AI agents invoke operational tools (such as payment processing, 
 3. **Safety Ceiling**: Enforces an autonomous upper bound (`$2,500`) that routes higher-risk transactions to human review.
 4. **Patch Synthesis & Verification**: Synthesizes minimally scoped Cedar condition diffs and validates them through a 5-vector adversarial test suite (boundary, over-boundary, role spoofing, negative inputs, and action escalation).
 5. **Human-in-the-Loop Governance**: Gates policy application behind cryptographic Amazon Cognito reviewer sign-off.
-6. **Audit Ledger**: Records every decision, diff, and verification hash in a tamper-evident SHA-256 Merkle chain in Amazon DynamoDB.
+6. **Audit Ledger**: Records every decision, diff, and verification hash in a tamper-evident SHA-256 linear hash chain in Amazon DynamoDB.
 7. **Anomaly Detection & Rollback**: Monitors post-approval execution traffic via EventBridge and Lambda to autonomously revert near-ceiling exploitation patterns by restoring pre-patch policies directly from ledger history.
 
 ---
@@ -36,7 +38,7 @@ When enterprise AI agents invoke operational tools (such as payment processing, 
 | **Deployment History** | Deployed during the hackathon in a temporary AWS sandbox; following hackathon conclusion, the public dashboard operates permanently in synthetic mode. |
 | **Cost & Abuse Controls** | Codified in `infra/template.yaml` (AWS Budget alarm at 80%/100% and API Gateway 5 req/sec route throttling; ready for deployment in a dedicated account). |
 
-> **Security Note**: The public dashboard runs in a decoupled synthetic evaluation mode. Visitors can simulate policy denials, review Cedar AST diffs, run the 5-test adversarial boundary battery, and verify SHA-256 Merkle chain integrity without requiring live AWS credentials or initiating billable foundation model invocations.
+> **Security Note**: The public dashboard runs in a decoupled synthetic evaluation mode. Visitors can simulate policy denials, review Cedar AST diffs, run the 5-test adversarial boundary battery, and verify SHA-256 linear hash chain integrity without requiring live AWS credentials or initiating billable foundation model invocations.
 
 ---
 
@@ -161,11 +163,12 @@ Tamper-evident SHA-256 hash chain verification and automated post-patch anomaly 
 │   ├── agent_gateway_client.py # SigV4 AgentCore MCP client utility
 │   └── server.py               # Local development server and mock API router
 ├── tests/
-│   ├── test_e2e_regression.py  # End-to-end remediation pipeline regression test
-│   ├── verify_audit_chain.py   # DynamoDB SHA-256 Merkle chain verification script
-│   └── simulate_anomaly_and_rollback.py # Anomaly clustering & rollback verification
-├── pyproject.toml              # Python package metadata and tool configurations
-├── requirements.txt            # Python dependencies
+│   ├── unit/                   # Pure logic unit tests (ceiling guard, adversarial battery, hash chain, anomaly window)
+│   ├── integration/            # Moto mocked tests (DynamoDB ledger, EventBridge, Lambda handlers, local server)
+│   ├── live/                   # Live AWS regression tests (marked @pytest.mark.live, skipped by default)
+│   └── conftest.py             # Pytest fixtures and dynamic Lambda module loader
+├── pyproject.toml              # Python package metadata, ruff, and pytest configurations
+├── requirements.txt            # Python dependencies including test/lint tooling
 ├── SECURITY.md                 # Security policy and vulnerability disclosure process
 ├── LICENSE                     # MIT License
 └── README.md
@@ -234,19 +237,22 @@ For complete deployment parameters, parameter overrides, and cost configurations
 
 ## Testing & Verification
 
-Run the test harnesses from the repository root:
+Run the test suites and code hygiene linters from the repository root:
 
 ```bash
-# 1. Run full E2E pipeline regression
-python tests/test_e2e_regression.py
+# 1. Run unit and moto integration tests with coverage check (>= 70%)
+pytest -m "not live" --cov=src --cov-fail-under=70
 
-# 2. Verify SHA-256 Merkle hash chain integrity
-python tests/verify_audit_chain.py
+# 2. Run Ruff Python linter
+ruff check .
 
-# 3. Simulate post-approval anomaly clustering and dynamic rollback
-python tests/simulate_anomaly_and_rollback.py
+# 3. Validate CloudFormation template
+cfn-lint infra/template.yaml
 
-# 4. Run PulseGuard security and secret scanner
+# 4. (Optional) Run live AWS integration tests against active sandbox credentials
+pytest -m "live"
+
+# 5. Run PulseGuard security and secret scanner
 python scripts/pulseguard_scanner.py
 ```
 

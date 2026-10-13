@@ -1,5 +1,4 @@
 ﻿import os
-import mimetypes
 import boto3
 import json
 import urllib.request
@@ -76,7 +75,7 @@ for root, dirs, files in os.walk(DIST_DIR):
         rel_path = os.path.relpath(full_path, DIST_DIR).replace("\\", "/")
         ext = os.path.splitext(f)[1].lower()
         content_type = content_type_map.get(ext, "application/octet-stream")
-        
+
         with open(full_path, "rb") as fp:
             s3.put_object(
                 Bucket=BUCKET,

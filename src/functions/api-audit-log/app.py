@@ -246,7 +246,7 @@ def lambda_handler(event, context):
             amounts = body.get("amounts", [2450, 2480, 2490])
             action = body.get("action", "process-refund")
             principal = body.get("principal", "arn:aws:iam::123456789012:role/CedarShield-FinanceAgent-Role")
-            
+
             now_base = time.time()
             telemetry_samples = [
                 {
@@ -271,7 +271,7 @@ def lambda_handler(event, context):
                 )
 
                 pre_patch_statement, source_run_id, source_seq = find_previous_policy_from_audit_ledger(action)
-                
+
                 try:
                     control_client.update_policy(
                         policyEngineId=ENGINE_ID,

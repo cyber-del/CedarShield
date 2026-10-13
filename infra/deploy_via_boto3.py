@@ -3,7 +3,6 @@ import io
 import zipfile
 import boto3
 import time
-import json
 
 REGION = "ap-southeast-2"
 BUCKET = "cedarshield-artifacts-123456789012-ap-southeast-2"

@@ -13,12 +13,12 @@ def lambda_handler(event, context):
     Handles Step Functions Task Token registration for human-in-the-loop approval.
     """
     print("AwaitApprovalHandler received event:", json.dumps(event))
-    
+
     token = event.get("token")
     execution_id = event.get("execution_id")
     pipeline_data = event.get("pipeline_data", {})
     run_id = pipeline_data.get("run_id")
-    
+
     table = dynamodb.Table(DYNAMODB_TABLE)
     try:
         table.update_item(
@@ -35,7 +35,7 @@ def lambda_handler(event, context):
         print(f"Task token successfully stored for run_id {run_id}")
     except Exception as e:
         print(f"Failed to store task token: {e}")
-        
+
     return {
         "status": "AWAITING_APPROVAL",
         "run_id": run_id,
